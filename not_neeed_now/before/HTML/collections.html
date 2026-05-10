@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Коллекции | Hefastos</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo-center">
+            <a href="/" style="text-decoration:none; color:inherit;">Hefastos</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/collections/">Коллекции</a></li>
+                <li><a href="/about/">О Доме</a></li>
+                <li><a href="/support/">Поддержка</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="product-grid" id="product-grid">
+        </div>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

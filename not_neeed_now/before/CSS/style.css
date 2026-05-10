@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900&family=Montserrat:wght@200;300;400;500;600&display=swap');
+
+:root {
+    --vca-gold: rgb(212, 175, 55);
+    --vca-black: rgb(26, 26, 26);
+    --vca-white: rgb(255, 255, 255);
+    --vca-grey-bg: rgb(248, 248, 248);
+    --vca-border: rgb(235, 235, 235);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--vca-white);
+    color: var(--vca-black);
+}
+
+header {
+    padding: 100px 0 60px 0;
+    border-bottom: 1px solid var(--vca-border);
+    position: relative;
+    text-align: center;
+}
+
+.logo-center {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    letter-spacing: 25px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+.logo-center a {
+    text-decoration: none;
+    color: var(--vca-black);
+}
+
+.header-right {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.cart-icon-container {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.trolley-icon {
+    width: 35px;
+    height: 35px;
+    fill: var(--vca-black);
+    transition: 0.3s ease;
+}
+
+.trolley-icon:hover {
+    fill: var(--vca-gold);
+}
+
+.cart-badge {
+    background: var(--vca-gold);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    list-style: none;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--vca-black);
+    font-size: 14px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: var(--vca-gold);
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+}
+
+.product-card {
+    padding: 120px 60px;
+    border: 0.5px solid var(--vca-border);
+    cursor: pointer;
+    transition: 0.6s ease;
+    text-align: center;
+    position: relative;
+}
+
+.product-card:hover {
+    background: rgb(250, 250, 250);
+}
+
+.product-card:hover .slider img {
+    transform: scale(1.1);
+}
+
+.image-container {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1/1;
+    margin-bottom: 40px;
+}
+
+.slider {
+    display: flex;
+    transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+    height: 100%;
+}
+
+.slider img {
+    width: 100%;
+    object-fit: contain;
+    transition: transform 1.2s ease;
+}
+
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 20;
+    opacity: 0;
+    transition: 0.3s;
+    font-size: 22px;
+}
+
+.image-container:hover .nav-btn {
+    opacity: 1;
+}
+
+.prev { left: 20px; }
+.next { right: 20px; }
+
+.product-detail-layout {
+    display: flex;
+    padding: 100px;
+    gap: 150px;
+    max-width: 1800px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+.detail-img-box {
+    flex: 1.4;
+    background: var(--vca-grey-bg);
+    padding: 80px;
+    position: relative;
+}
+
+/* ИСПРАВЛЕНО: Размер уменьшен до 24px, жирность умеренная (500) */
+.product-title-large {
+    font-family: 'Playfair Display', serif;
+    color: #000000;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.description-block {
+    margin: 60px 0;
+    font-size: 24px;
+    line-height: 2.2;
+    border-top: 1px solid var(--vca-border);
+}
+
+.description-block p {
+    padding: 30px 0;
+    border-bottom: 1px solid var(--vca-border);
+}
+
+.detail-price-large {
+    font-size: 50px;
+    margin: 60px 0;
+    font-weight: 300;
+}
+
+.buy-now-btn {
+    width: 100%;
+    padding: 32px;
+    background: var(--vca-black);
+    color: white;
+    border: none;
+    letter-spacing: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 18px;
+    margin-bottom: 25px;
+    transition: 0.4s;
+}
+
+.buy-now-btn:hover {
+    background: var(--vca-gold);
+}
+
+.add-to-cart-btn {
+    width: 100%;
+    padding: 32px;
+    background: white;
+    color: var(--vca-black);
+    border: 1px solid var(--vca-black);
+    letter-spacing: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 18px;
+    transition: 0.4s;
+}
+
+.add-to-cart-btn:hover {
+    background: var(--vca-black);
+    color: white;
+}
+
+.back-btn-container {
+    text-align: right;
+    margin-top: 25px;
+}
+
+.back-btn {
+    text-decoration: none;
+    color: var(--vca-black);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.cart-modal {
+    display: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 600px;
+    height: 100%;
+    background: white;
+    box-shadow: -30px 0 80px rgba(0,0,0,0.2);
+    z-index: 9999;
+    padding: 80px;
+}
+
+.cart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    margin-bottom: 50px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 0;
+    border-bottom: 1px solid var(--vca-border);
+    font-size: 18px;
+}
+
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: #cc0000;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-left: 20px;
+    transition: 0.2s;
+}
+
+.remove-item-btn:hover {
+    transform: scale(1.2);
+}
+
+.empty-cart-msg {
+    text-align: center;
+    margin-top: 150px;
+}
+
+.empty-cart-msg p {
+    font-size: 22px;
+    color: gray;
+    margin-bottom: 40px;
+}
+
+.find-btn {
+    padding: 25px 60px;
+    background: var(--vca-gold);
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 16px;
+}
+
+.close-cart-text {
+    margin-top: 60px;
+    background: none;
+    border: none;
+    color: gray;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 14px;
+}

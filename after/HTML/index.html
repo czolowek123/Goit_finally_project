@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hefastos | Official Boutique</title>
+    {% if google_client_id %}<meta name="google-client-id" content="{{ google_client_id }}">{% endif %}
+    <link rel="stylesheet" href="/static/CSS/style.css?v=6">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="home-body">
+
+    <!-- ==================== SIDE MENU ==================== -->
+    <div class="side-menu-overlay" onclick="closeMenu()"></div>
+    <div class="side-menu">
+        <button class="side-menu-close" onclick="closeMenu()">&times;</button>
+        <ul class="side-menu-nav">
+            <li><a href="/" data-i18n="nav_home">Главная</a></li>
+            <li><a href="/collections/" data-i18n="nav_collections">Коллекции</a></li>
+            <li><a href="/stones/" data-i18n="nav_stones">Камни</a></li>
+            <li><a href="/custom/" data-i18n="nav_custom">На заказ</a></li>
+            <li><a href="/about/" data-i18n="nav_about">О Доме</a></li>
+            <li><a href="/support/" data-i18n="nav_support">Поддержка</a></li>
+            <li><a href="/support/" data-i18n="nav_contact">Контакт</a></li>
+        </ul>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="site-header site-header--overlay" id="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-left">
+                <button class="header-icon-btn hamburger-btn" onclick="toggleMenu()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <button class="header-search-btn" onclick="openSearch()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>SEARCH</span>
+                </button>
+            </div>
+            <div class="site-logo">
+                <a href="/">Hefastos</a>
+            </div>
+            <div class="site-header-right">
+                <div class="lang-selector">
+                    <span class="header-region-text" id="lang-current" onclick="toggleLangDropdown()">RU &gt;</span>
+                    <div class="lang-dropdown" id="lang-dropdown">
+                        <button onclick="applyLanguage('en')">EN</button>
+                        <button onclick="applyLanguage('pl')">PL</button>
+                        <button onclick="applyLanguage('ru')">RU</button>
+                    </div>
+                </div>
+                <button class="header-icon-btn cart-btn" onclick="toggleCart()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="m1 1 4 0 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </button>
+                <button class="header-icon-btn account-btn" onclick="openAuthModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </button>
+                <div class="logged-in-info" style="display:none">
+                    <span class="user-display-name"></span>
+                    <button class="header-icon-btn logout-btn" onclick="doLogout()" title="Выход">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== CART DRAWER ==================== -->
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-drawer-header">
+            <h2 data-i18n="cart_title">КОРЗИНА</h2>
+            <button class="cart-drawer-close" onclick="toggleCart()">&times;</button>
+        </div>
+        <div id="cart-items-list"></div>
+    </div>
+
+    <!-- ==================== AUTH MODAL ==================== -->
+    <div id="auth-overlay" onclick="closeAuthModal()"></div>
+    <div id="auth-modal">
+        <div class="auth-header">
+            <h2>LOG IN</h2>
+            <button class="auth-close" onclick="closeAuthModal()">&times;</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="auth_login">ВХОД</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="auth_register">СОЗДАТЬ АККАУНТ</button>
+        </div>
+        <div id="auth-login-form">
+            <div class="auth-field">
+                <label data-i18n="auth_email">Email *</label>
+                <input type="email" placeholder="Email Id">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_password">Пароль *</label>
+                <input type="password" placeholder="Password">
+            </div>
+            <div id="auth-login-error" class="auth-error"></div>
+            <button class="auth-submit-btn" onclick="submitLogin()" data-i18n="auth_submit">ВОЙТИ</button>
+            <a href="#" class="auth-forgot" data-i18n="auth_forgot">Забыли пароль?</a>
+            <div class="auth-divider"><span>or</span></div>
+            <button class="auth-google-btn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span data-i18n="auth_google">Войти через Google</span>
+            </button>
+        </div>
+        <div id="auth-register-form" style="display:none">
+            <div class="auth-field">
+                <label data-i18n="auth_title_label">Обращение *</label>
+                <div class="auth-radio-group">
+                    <label><input type="radio" name="title" value="mr" checked> Mr.</label>
+                    <label><input type="radio" name="title" value="mrs"> Mrs.</label>
+                    <label><input type="radio" name="title" value="ms"> Ms.</label>
+                </div>
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_firstname">Имя *</label>
+                <input type="text" placeholder="Your first name">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_lastname">Фамилия *</label>
+                <input type="text" placeholder="Your last name">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_country">Страна *</label>
+                <select>
+                    <option>Poland</option>
+                    <option>Russia</option>
+                    <option>United States</option>
+                    <option>Germany</option>
+                    <option>France</option>
+                    <option>United Kingdom</option>
+                    <option>Italy</option>
+                    <option>Spain</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_email">Email *</label>
+                <input type="email" placeholder="Your email address">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_password">Пароль *</label>
+                <input type="password" placeholder="Password">
+            </div>
+            <div id="auth-register-error" class="auth-error"></div>
+            <button class="auth-submit-btn" onclick="submitRegister()" data-i18n="auth_create_btn">СОЗДАТЬ АККАУНТ</button>
+            <div class="auth-divider"><span>or</span></div>
+            <button class="auth-google-btn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span data-i18n="auth_google">Войти через Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== STICKY VIDEO HERO STACK ==================== -->
+    <div class="video-stack">
+        <section class="video-screen video-screen-1">
+            <video class="hero-video" autoplay muted loop playsinline poster="/static/images/avangard 1.jpg">
+                <source src="/static/images/main.mp4" type="video/mp4">
+            </video>
+            <div class="video-overlay"></div>
+            <div class="video-hero-text video-hero-text--top">
+                <h1 class="hero-welcome" data-i18n="hero_welcome">Welcome to Hefastos</h1>
+                <p class="hero-welcome-sub" data-i18n="hero_welcome_sub">Украшения, рождённые из совершенства</p>
+            </div>
+            <div class="scroll-hint">
+                <span data-i18n="scroll_hint">Прокрутите вниз</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            </div>
+        </section>
+
+        <section class="video-screen video-screen-2">
+            <video class="hero-video" autoplay muted loop playsinline poster="/static/images/balance 1.jpg">
+                <source src="/static/images/main2.mp4" type="video/mp4">
+            </video>
+            <div class="video-overlay"></div>
+            <div class="video-hero-text video-hero-text--right">
+                <h2 class="hero-collection-title" data-i18n="hero_collection_title">Magie d'Or</h2>
+                <p class="hero-collection-sub" data-i18n="hero_collection_sub">Откройте для себя коллекцию,<br>в которой золото обретает душу</p>
+                <a href="/collections/" class="hero-discover-link" data-i18n="hero_discover">DISCOVER</a>
+            </div>
+        </section>
+
+        <section class="video-screen video-screen-3">
+            <video class="hero-video" autoplay muted loop playsinline poster="/static/images/classic 1.jpg">
+                <source src="/static/images/main3.mp4" type="video/mp4">
+            </video>
+            <div class="video-overlay"></div>
+            <div class="video-hero-text video-hero-text--left">
+                <h2 class="hero-collection-title" data-i18n="hero_legacy_title">Наследие<br>мастерства</h2>
+                <p class="hero-collection-sub" data-i18n="hero_legacy_sub">Каждое изделие — история,<br>оживающая в драгоценных камнях</p>
+                <a href="/about/" class="hero-discover-link" data-i18n="hero_discover_about">EXPLORE</a>
+            </div>
+        </section>
+    </div>
+
+    <!-- ==================== VCA-STYLE FEATURED COLLECTION ==================== -->
+    <section class="vca-feature-section vca-feature-dark">
+        <div class="vca-feature-image-wrap">
+            <video class="vca-feature-media" autoplay muted loop playsinline poster="/static/images/avangard 1.jpg">
+                <source src="/static/images/kolco.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="vca-feature-text-wrap">
+            <p class="vca-feature-eyebrow" data-i18n="feature_signature">SIGNATURE PIECE</p>
+            <h2 class="vca-feature-title" data-i18n="feature_avangard_title">Journey of light<br>and shadow</h2>
+            <p class="vca-feature-desc" data-i18n="feature_avangard_desc">Кольцо Avangard Special — союз бриллианта груши и багета на оправе из золота 585 пробы.</p>
+            <a href="/product/gold_emerald/" class="vca-feature-link" data-i18n="feature_admire">ADMIRE THE PIECE</a>
+        </div>
+    </section>
+
+    <!-- ==================== VCA-STYLE SECONDARY COLLECTION ==================== -->
+    <section class="vca-feature-section vca-feature-light vca-feature-reverse">
+        <div class="vca-feature-image-wrap">
+            <img src="/static/images/balance 1.jpg" alt="Balance Gold" class="vca-feature-media">
+        </div>
+        <div class="vca-feature-text-wrap">
+            <p class="vca-feature-eyebrow vca-feature-eyebrow--dark" data-i18n="feature_balance_eyebrow">BALANCE COLLECTION</p>
+            <h2 class="vca-feature-title vca-feature-title--dark" data-i18n="feature_balance_title">A poetic vision<br>of harmony</h2>
+            <p class="vca-feature-desc vca-feature-desc--dark" data-i18n="feature_balance_desc">Изящные линии и чистый бриллиант — воплощение гармонии в каждой детали.</p>
+            <a href="/product/silver_pear/" class="vca-feature-link vca-feature-link--dark" data-i18n="feature_discover">DISCOVER</a>
+        </div>
+    </section>
+
+    <!-- ==================== ENCHANTING GIFTS - dark cosmic ==================== -->
+    <section class="vca-gift-section">
+        <p class="vca-gift-eyebrow" data-i18n="gift_eyebrow">ENCHANTING GIFTS</p>
+        <h2 class="vca-gift-title" data-i18n="gift_title">Подарки, которые<br>остаются навсегда</h2>
+        <div class="vca-gift-stage">
+            <img src="/static/images/classic 1.jpg" alt="Classic Edition" class="vca-gift-image">
+            <div class="vca-gift-stars"></div>
+        </div>
+        <p class="vca-gift-caption" data-i18n="gift_caption">Благодаря мастерству, креативности и совершенству,<br>Hefastos сопровождает счастливейшие моменты жизни.</p>
+        <a href="/collections/" class="vca-gift-cta" data-i18n="gift_cta">VIEW ALL CREATIONS</a>
+    </section>
+
+    <!-- ==================== TRIPTYCH GRID ==================== -->
+    <section class="vca-triptych-section">
+        <div class="vca-triptych">
+            <a href="/product/gold_emerald/" class="vca-trip-card">
+                <div class="vca-trip-img-wrap">
+                    <img src="/static/images/avangard 1.jpg" alt="Avangard">
+                </div>
+                <div class="vca-trip-text">
+                    <p class="vca-trip-eyebrow" data-i18n="trip_avangard_eyebrow">AVANGARD</p>
+                    <h3 class="vca-trip-name" data-i18n="trip_avangard_name">Special Edition</h3>
+                    <span class="vca-trip-link" data-i18n="trip_explore">EXPLORE</span>
+                </div>
+            </a>
+            <a href="/product/silver_pear/" class="vca-trip-card">
+                <div class="vca-trip-img-wrap">
+                    <img src="/static/images/balance 2.jpg" alt="Balance">
+                </div>
+                <div class="vca-trip-text">
+                    <p class="vca-trip-eyebrow" data-i18n="trip_balance_eyebrow">BALANCE</p>
+                    <h3 class="vca-trip-name" data-i18n="trip_balance_name">Gold Heritage</h3>
+                    <span class="vca-trip-link" data-i18n="trip_explore">EXPLORE</span>
+                </div>
+            </a>
+            <a href="/product/multi_stone/" class="vca-trip-card">
+                <div class="vca-trip-img-wrap">
+                    <img src="/static/images/classic 2.jpg" alt="Classic">
+                </div>
+                <div class="vca-trip-text">
+                    <p class="vca-trip-eyebrow" data-i18n="trip_classic_eyebrow">CLASSIC</p>
+                    <h3 class="vca-trip-name" data-i18n="trip_classic_name">Eternal Edition</h3>
+                    <span class="vca-trip-link" data-i18n="trip_explore">EXPLORE</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- ==================== DARK QUOTE SECTION ==================== -->
+    <section class="dark-quote-section">
+        <button class="quote-arrow-btn quote-arrow-prev" onclick="prevQuote()">&#8249;</button>
+        <div class="quote-inner">
+            <div class="quote-slide active" data-index="0">
+                <blockquote class="main-quote-text" data-i18n="quote_1_text">
+                    «Hefastos изменил то, как я воспринимаю роскошь — это не просто украшение, это часть моей истории.»
+                </blockquote>
+                <div class="quote-author-name" data-i18n="quote_1_author">— Анастасия М., клиент Дома Hefastos</div>
+            </div>
+            <div class="quote-slide" data-index="1">
+                <blockquote class="main-quote-text" data-i18n="quote_2_text">
+                    «Когда я надела кольцо Balance Gold впервые, я поняла — это именно то, о чём я мечтала всю жизнь.»
+                </blockquote>
+                <div class="quote-author-name" data-i18n="quote_2_author">— Виктория Л., Москва</div>
+            </div>
+            <div class="quote-slide" data-index="2">
+                <blockquote class="main-quote-text" data-i18n="quote_3_text">
+                    «Classic Edition — это вечная классика. Элегантность, которая никогда не выйдет из моды.»
+                </blockquote>
+                <div class="quote-author-name" data-i18n="quote_3_author">— Елена К., Санкт-Петербург</div>
+            </div>
+        </div>
+        <button class="quote-arrow-btn quote-arrow-next" onclick="nextQuote()">&#8250;</button>
+        <div class="partner-logos-row">
+            <span class="partner-logo-name">AVANGARD</span>
+            <span class="partner-logo-name">VANBRUUN</span>
+            <span class="partner-logo-name">BALANCE</span>
+            <span class="partner-logo-name">CLASSIC</span>
+            <span class="partner-logo-name">HEFASTOS</span>
+            <span class="partner-logo-name">DIAMANTS</span>
+        </div>
+    </section>
+
+    <!-- ==================== NEWSLETTER ==================== -->
+    <section class="vca-newsletter">
+        <h3 class="vca-newsletter-title" data-i18n="newsletter_title">THE HEFASTOS NEWSLETTER</h3>
+        <p class="vca-newsletter-desc" data-i18n="newsletter_desc">Откройте мир нашего Дома: коллекции, события и секреты мастерства. Будьте первыми, кто узнает все новости.</p>
+        <form class="vca-newsletter-form" onsubmit="event.preventDefault(); alert('Спасибо за подписку!');">
+            <input type="email" placeholder="Email Address" required>
+            <button type="submit" data-i18n="newsletter_subscribe">SUBSCRIBE</button>
+        </form>
+    </section>
+
+    <!-- ==================== SEARCH ==================== -->
+    <div class="search-overlay" id="search-overlay" onclick="closeSearch()"></div>
+    <div class="search-panel" id="search-panel">
+        <input type="text" placeholder="SEARCH..." oninput="handleSearchInput(this)">
+        <button class="search-close-btn" onclick="closeSearch()">&times;</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+
+    <div id="product-grid" style="display:none;"></div>
+    <div id="product-detail-view"></div>
+
+    <script src="/static/JS/script.js?v=6"></script>
+    <script src="/static/JS/molot.js?v=6"></script>
+</body>
+</html>

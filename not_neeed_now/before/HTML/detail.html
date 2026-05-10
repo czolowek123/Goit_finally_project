@@ -1,0 +1,21 @@
+<style>
+    .container { display: flex; height: 100vh; align-items: center; padding: 0 10%; }
+    .image-box { width: 50%; }
+    .image-box img { width: 100%; filter: grayscale(100%); transition: 0.5s; }
+    .image-box img:hover { filter: grayscale(0%); }
+    .info { width: 50%; padding-left: 50px; }
+    .info h1 { font-family: 'Great Vibes'; font-size: 60px; }
+    .back { text-decoration: none; color: #000; font-size: 12px; text-transform: uppercase; }
+</style>
+
+<div class="container">
+    <div class="image-box">
+        <img src="/static/images/{{ product.image_name }}" alt="">
+    </div>
+    <div class="info">
+        <a href="/" class="back">← Назад</a>
+        <h1>{{ product.title }}</h1>
+        <p>{{ product.description }}</p>
+        <p><b>{{ product.price }} USD</b></p>
+    </div>
+</div>

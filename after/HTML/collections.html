@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Коллекции | Hefastos</title>
+    {% if google_client_id %}<meta name="google-client-id" content="{{ google_client_id }}">{% endif %}
+    <link rel="stylesheet" href="/static/CSS/style.css?v=5">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <!-- ==================== SIDE MENU ==================== -->
+    <div class="side-menu-overlay" onclick="closeMenu()"></div>
+    <div class="side-menu">
+        <button class="side-menu-close" onclick="closeMenu()">&times;</button>
+        <ul class="side-menu-nav">
+            <li><a href="/" data-i18n="nav_home">Главная</a></li>
+            <li><a href="/collections/" data-i18n="nav_collections">Коллекции</a></li>
+            <li><a href="/stones/" data-i18n="nav_stones">Камни</a></li>
+            <li><a href="/custom/" data-i18n="nav_custom">На заказ</a></li>
+            <li><a href="/about/" data-i18n="nav_about">О Доме</a></li>
+            <li><a href="/support/" data-i18n="nav_support">Поддержка</a></li>
+            <li><a href="/support/" data-i18n="nav_contact">Контакт</a></li>
+        </ul>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-left">
+                <button class="header-icon-btn hamburger-btn" onclick="toggleMenu()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <button class="header-search-btn" onclick="openSearch()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>SEARCH</span>
+                </button>
+            </div>
+            <div class="site-logo">
+                <a href="/">Hefastos</a>
+            </div>
+            <div class="site-header-right">
+                <div class="lang-selector">
+                    <span class="header-region-text" id="lang-current" onclick="toggleLangDropdown()">RU &gt;</span>
+                    <div class="lang-dropdown" id="lang-dropdown">
+                        <button onclick="applyLanguage('en')">EN</button>
+                        <button onclick="applyLanguage('pl')">PL</button>
+                        <button onclick="applyLanguage('ru')">RU</button>
+                    </div>
+                </div>
+                <button class="header-icon-btn cart-btn" onclick="toggleCart()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="m1 1 4 0 2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </button>
+                <button class="header-icon-btn account-btn" onclick="openAuthModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </button>
+                <div class="logged-in-info" style="display:none">
+                    <span class="user-display-name"></span>
+                    <button class="header-icon-btn logout-btn" onclick="doLogout()" title="Выход">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== CART DRAWER ==================== -->
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-drawer-header">
+            <h2 data-i18n="cart_title">КОРЗИНА</h2>
+            <button class="cart-drawer-close" onclick="toggleCart()">&times;</button>
+        </div>
+        <div id="cart-items-list"></div>
+    </div>
+
+    <!-- ==================== AUTH MODAL ==================== -->
+    <div id="auth-overlay" onclick="closeAuthModal()"></div>
+    <div id="auth-modal">
+        <div class="auth-header">
+            <h2>LOG IN</h2>
+            <button class="auth-close" onclick="closeAuthModal()">&times;</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="auth_login">ВХОД</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="auth_register">СОЗДАТЬ АККАУНТ</button>
+        </div>
+        <div id="auth-login-form">
+            <div class="auth-field">
+                <label data-i18n="auth_email">Email *</label>
+                <input type="email" placeholder="Email Id">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_password">Пароль *</label>
+                <input type="password" placeholder="Password">
+            </div>
+            <div id="auth-login-error" class="auth-error"></div>
+            <button class="auth-submit-btn" onclick="submitLogin()" data-i18n="auth_submit">ВОЙТИ</button>
+            <a href="#" class="auth-forgot" data-i18n="auth_forgot">Забыли пароль?</a>
+            <div class="auth-divider"><span>or</span></div>
+            <button class="auth-google-btn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span data-i18n="auth_google">Войти через Google</span>
+            </button>
+        </div>
+        <div id="auth-register-form" style="display:none">
+            <div class="auth-field">
+                <label data-i18n="auth_title_label">Обращение *</label>
+                <div class="auth-radio-group">
+                    <label><input type="radio" name="title" value="mr" checked> Mr.</label>
+                    <label><input type="radio" name="title" value="mrs"> Mrs.</label>
+                    <label><input type="radio" name="title" value="ms"> Ms.</label>
+                </div>
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_firstname">Имя *</label>
+                <input type="text" placeholder="Your first name">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_lastname">Фамилия *</label>
+                <input type="text" placeholder="Your last name">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_country">Страна *</label>
+                <select>
+                    <option>Poland</option>
+                    <option>Russia</option>
+                    <option>United States</option>
+                    <option>Germany</option>
+                    <option>France</option>
+                    <option>United Kingdom</option>
+                    <option>Italy</option>
+                    <option>Spain</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_email">Email *</label>
+                <input type="email" placeholder="Your email address">
+            </div>
+            <div class="auth-field">
+                <label data-i18n="auth_password">Пароль *</label>
+                <input type="password" placeholder="Password">
+            </div>
+            <div id="auth-register-error" class="auth-error"></div>
+            <button class="auth-submit-btn" onclick="submitRegister()" data-i18n="auth_create_btn">СОЗДАТЬ АККАУНТ</button>
+            <div class="auth-divider"><span>or</span></div>
+            <button class="auth-google-btn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span data-i18n="auth_google">Войти через Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== FILTER PANEL ==================== -->
+    <div class="filter-overlay" id="filter-overlay" onclick="closeFilterPanel()"></div>
+    <div class="filter-panel" id="filter-panel">
+        <div class="filter-panel-body">
+            <div class="filter-section">
+                <button class="filter-section-header" onclick="toggleFilterSection(this)">
+                    <span data-i18n="filter_materials">МАТЕРИАЛЫ</span>
+                    <span class="filter-toggle-icon">+</span>
+                </button>
+                <div class="filter-section-content">
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox" checked>
+                        <span data-i18n="material_gold585">Золото 585</span>
+                    </label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <button class="filter-section-header" onclick="toggleFilterSection(this)">
+                    <span data-i18n="filter_stones">КАМНИ</span>
+                    <span class="filter-toggle-icon">+</span>
+                </button>
+                <div class="filter-section-content">
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox" checked>
+                        <span>Diamond</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Emerald</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Ruby</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Sapphire</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Mother-of-pearl</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Onyx</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Turquoise</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Carnelian</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Malachite</span>
+                    </label>
+                    <label class="filter-checkbox-item">
+                        <input type="checkbox">
+                        <span>Lapis lazuli</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="filter-panel-footer">
+            <button class="filter-reset-btn" onclick="closeFilterPanel()" data-i18n="filter_reset">СБРОСИТЬ ФИЛЬТРЫ</button>
+            <button class="filter-display-btn" onclick="closeFilterPanel()">
+                <span data-i18n="filter_display">ПОКАЗАТЬ</span> 3 <span data-i18n="filter_results">РЕЗУЛЬТАТ(ОВ)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== PAGE TITLE ==================== -->
+    <div class="collections-page-title">
+        <h1 data-i18n="collections_title">Коллекции</h1>
+        <p data-i18n="collections_subtitle">Откройте для себя изысканные украшения Дома Hefastos</p>
+    </div>
+
+    <!-- ==================== COLLECTION TABS ==================== -->
+    <div class="collection-tabs">
+        <button class="collection-tab active" data-collection="all" onclick="filterByCollection('all')" data-i18n="tab_all">Все коллекции</button>
+        <button class="collection-tab" data-collection="Avangard" onclick="filterByCollection('Avangard')">Avangard</button>
+        <button class="collection-tab" data-collection="Balance" onclick="filterByCollection('Balance')">Balance</button>
+        <button class="collection-tab" data-collection="Classic" onclick="filterByCollection('Classic')">Classic</button>
+    </div>
+
+    <!-- ==================== FILTER BAR ==================== -->
+    <div class="filter-bar">
+        <div class="filter-bar-left-wrap">
+            <button class="filter-bar-left" onclick="toggleTypeDropdown()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"/>
+                    <line x1="4" y1="10" x2="4" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12" y2="3"/>
+                    <line x1="20" y1="21" x2="20" y2="16"/>
+                    <line x1="20" y1="12" x2="20" y2="3"/>
+                    <line x1="1" y1="14" x2="7" y2="14"/>
+                    <line x1="9" y1="8" x2="15" y2="8"/>
+                    <line x1="17" y1="16" x2="23" y2="16"/>
+                </svg>
+                <span data-i18n="filter_btn">ФИЛЬТР</span>
+            </button>
+            <div class="filter-type-dropdown" id="type-dropdown">
+                <div class="filter-dropdown-title" data-i18n="filter_type">ТИП</div>
+                <button class="filter-type-option active" data-type="all" onclick="filterByType('all', this)" data-i18n="filter_type_all">Все</button>
+                <button class="filter-type-option" data-type="Avangard" onclick="filterByType('Avangard', this)">Avangard</button>
+                <button class="filter-type-option" data-type="Balance" onclick="filterByType('Balance', this)">Balance</button>
+                <button class="filter-type-option" data-type="Classic" onclick="filterByType('Classic', this)">Classic</button>
+                <div class="filter-dropdown-divider"></div>
+                <div class="filter-dropdown-title" data-i18n="filter_price_range">ЦЕНА</div>
+                <button class="filter-price-range active" data-min="0" data-max="999999" onclick="filterByPriceRange(0, 999999, this)">Все цены</button>
+                <button class="filter-price-range" data-min="0" data-max="1000" onclick="filterByPriceRange(0, 1000, this)">До €1 000</button>
+                <button class="filter-price-range" data-min="1000" data-max="2000" onclick="filterByPriceRange(1000, 2000, this)">€1 000 — €2 000</button>
+                <button class="filter-price-range" data-min="2000" data-max="5000" onclick="filterByPriceRange(2000, 5000, this)">€2 000 — €5 000</button>
+                <button class="filter-price-range" data-min="5000" data-max="10000" onclick="filterByPriceRange(5000, 10000, this)">€5 000 — €10 000</button>
+                <button class="filter-price-range" data-min="10000" data-max="999999" onclick="filterByPriceRange(10000, 999999, this)">От €10 000</button>
+            </div>
+        </div>
+        <div class="sort-bar-right-wrap">
+            <button class="filter-bar-right" onclick="toggleSortDropdown()">
+                <span data-i18n="sort_btn">СОРТИРОВКА</span>
+                <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow">
+                    <polyline points="1 1 6 6 11 1"/>
+                </svg>
+            </button>
+            <div class="sort-dropdown" id="sort-dropdown">
+                <button class="sort-option active" data-sort="default" onclick="sortProducts('default', this)" data-i18n="sort_default">По умолчанию</button>
+                <button class="sort-option" data-sort="price-asc" onclick="sortProducts('price-asc', this)" data-i18n="sort_price_asc">Цена: по возрастанию</button>
+                <button class="sort-option" data-sort="price-desc" onclick="sortProducts('price-desc', this)" data-i18n="sort_price_desc">Цена: по убыванию</button>
+                <button class="sort-option" data-sort="name-asc" onclick="sortProducts('name-asc', this)" data-i18n="sort_name_asc">Название: А — Я</button>
+                <button class="sort-option" data-sort="name-desc" onclick="sortProducts('name-desc', this)" data-i18n="sort_name_desc">Название: Я — А</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SEARCH ==================== -->
+    <div class="search-overlay" id="search-overlay" onclick="closeSearch()"></div>
+    <div class="search-panel" id="search-panel">
+        <input type="text" placeholder="SEARCH..." oninput="handleSearchInput(this)">
+        <button class="search-close-btn" onclick="closeSearch()">&times;</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+
+    <!-- ==================== PRODUCT GRID ==================== -->
+    <div class="product-grid" id="product-grid"></div>
+
+    <script src="/static/JS/script.js?v=5"></script>
+    <script src="/static/JS/molot.js?v=5"></script>
+</body>
+</html>
