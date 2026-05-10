@@ -23,11 +23,19 @@ def collections_view(request):
     return render(request, 'collections.html', _ctx(request))
 
 
+def stones_view(request):
+    return render(request, 'stones.html', _ctx(request))
+
+
 def about_view(request):
     return render(request, 'about.html', _ctx(request))
 
 
 def support_view(request):
+    return render(request, 'support.html', _ctx(request))
+
+
+def custom_view(request):
     return render(request, 'support.html', _ctx(request))
 
 
@@ -188,6 +196,8 @@ STATIC_ROOT_DIR = str(settings.STATICFILES_DIRS[0]) if settings.STATICFILES_DIRS
 urlpatterns = [
     path('', home, name='home'),
     path('collections/', collections_view, name='collections'),
+    path('stones/', stones_view, name='stones'),
+    path('custom/', custom_view, name='custom'),
     path('about/', about_view, name='about'),
     path('support/', support_view, name='support'),
     path('product/<str:product_id>/', product_detail_view, name='product_detail'),
