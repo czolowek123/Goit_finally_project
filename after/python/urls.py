@@ -3,6 +3,7 @@ import re
 import json
 import urllib.request
 import urllib.parse
+from datetime import datetime
 from html.parser import HTMLParser
 from django.urls import path, re_path
 from django.shortcuts import render
@@ -19,6 +20,7 @@ OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2-vision:11b')
 WEB_SEARCH_RESULT_LIMIT = int(os.environ.get('WEB_SEARCH_RESULT_LIMIT', '3'))
 WEB_SOURCE_TEXT_LIMIT = int(os.environ.get('WEB_SOURCE_TEXT_LIMIT', '4000'))
 WEB_REQUEST_TIMEOUT = int(os.environ.get('WEB_REQUEST_TIMEOUT', '10'))
+OLLAMA_ANSWER_FILE = os.environ.get('OLLAMA_ANSWER_FILE', 'main.txt')
 WEB_USER_AGENT = (
     'Mozilla/5.0 (X11; Linux x86_64) '
     'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -289,6 +291,48 @@ def _ask_ollama(question, sources, model_name):
     return data.get('response', '').strip()
 
 
+def _get_ollama_answer_file_path():
+    answer_file = OLLAMA_ANSWER_FILE.strip() or 'main.txt'
+
+    if os.path.isabs(answer_file):
+        return answer_file
+
+    base_dir = str(getattr(settings, 'BASE_DIR', os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(base_dir, answer_file)
+
+
+def _write_ollama_answer_file(question, answer, model_name, sources):
+    output_file_path = _get_ollama_answer_file_path()
+    output_dir = os.path.dirname(output_file_path)
+
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
+    source_lines = []
+
+    for index, source in enumerate(sources, start=1):
+        source_lines.append(f"{index}. {source['title']} - {source['url']}")
+
+    file_text = (
+        "OLLAMA WEB ANSWER\n"
+        "=================\n\n"
+        f"Saved at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"Model: {model_name}\n\n"
+        "QUESTION:\n"
+        f"{question}\n\n"
+        "ANSWER:\n"
+        f"{answer}\n\n"
+        "SOURCES:\n"
+        + ("\n".join(source_lines) if source_lines else "No sources")
+        + "\n"
+    )
+
+    with open(output_file_path, 'w', encoding='utf-8') as output_file:
+        output_file.write(file_text)
+
+    return output_file_path
+
+
 def _ctx(request):
     return {'google_client_id': getattr(settings, 'GOOGLE_CLIENT_ID', '')}
 
@@ -520,10 +564,28 @@ def api_ollama_web(request):
             ],
         }, status=502)
 
+    try:
+        output_file_path = _write_ollama_answer_file(question, answer, model_name, sources)
+    except Exception as exc:
+        return JsonResponse({
+            'ok': False,
+            'error': 'Ollama answered, but saving answer to txt failed.',
+            'details': str(exc),
+            'answer': answer,
+            'sources': [
+                {
+                    'title': source['title'],
+                    'url': source['url'],
+                }
+                for source in sources
+            ],
+        }, status=500)
+
     return JsonResponse({
         'ok': True,
         'answer': answer,
         'model': model_name,
+        'output_file': output_file_path,
         'sources': [
             {
                 'title': source['title'],
