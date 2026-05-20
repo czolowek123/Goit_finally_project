@@ -1,65 +1,100 @@
 #!/usr/bin/env python
-import importlib.util
+import json
 import os
 import sys
+import urllib.request
+import urllib.error
 from pathlib import Path
 
 
-def find_settings_module(current_dir):
-    existing_settings_module = os.environ.get('DJANGO_SETTINGS_MODULE', '').strip()
+OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL', 'http://127.0.0.1:11434').rstrip('/')
+OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2-vision:11b')
+ANSWER_FILE_NAME = os.environ.get('ANSWER_FILE_NAME', 'main.txt')
 
-    if existing_settings_module and importlib.util.find_spec(existing_settings_module):
-        return existing_settings_module
 
-    settings_candidates = [
-        ('pro_settings', current_dir / 'pro_settings.py'),
-        ('settings', current_dir / 'settings.py'),
-        ('myproject.settings', current_dir / 'myproject' / 'settings.py'),
-    ]
-
-    for module_name, module_path in settings_candidates:
-        if module_path.is_file():
-            return module_name
-
-    raise RuntimeError(
-        "Django settings file was not found. "
-        "Add settings.py, pro_settings.py, myproject/settings.py, "
-        "or set DJANGO_SETTINGS_MODULE to an existing settings module."
+def ask_ollama(question):
+    prompt = (
+        "Отвечай по-русски, понятно и кратко.\n"
+        "Если точно не знаешь ответ, скажи об этом честно.\n\n"
+        f"Вопрос пользователя:\n{question}"
     )
+
+    payload = {
+        'model': OLLAMA_MODEL,
+        'prompt': prompt,
+        'stream': False,
+    }
+
+    request = urllib.request.Request(
+        OLLAMA_BASE_URL + '/api/generate',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+
+    with urllib.request.urlopen(request, timeout=120) as response:
+        data = json.loads(response.read().decode('utf-8'))
+
+    return data.get('response', '').strip()
+
+
+def get_answer_file_path():
+    current_dir = Path(__file__).resolve().parent
+    answer_file = Path(ANSWER_FILE_NAME)
+
+    if answer_file.is_absolute():
+        return answer_file
+
+    return current_dir / answer_file
+
+
+def write_answer_to_file(question, answer):
+    answer_file_path = get_answer_file_path()
+
+    text = (
+        "QUESTION:\n"
+        f"{question}\n\n"
+        "ANSWER:\n"
+        f"{answer}\n"
+    )
+
+    answer_file_path.write_text(text, encoding='utf-8')
+
+    return answer_file_path
+
+
+def get_question_from_user():
+    if len(sys.argv) > 1:
+        return ' '.join(sys.argv[1:]).strip()
+
+    return input('Что хотите задать? ').strip()
 
 
 def main():
-    current_dir = Path(__file__).resolve().parent
-    current_dir_text = str(current_dir)
+    question = get_question_from_user()
 
-    os.chdir(current_dir_text)
-
-    if current_dir_text not in sys.path:
-        sys.path.insert(0, current_dir_text)
-
-    python_path = os.environ.get('PYTHONPATH', '')
-    python_path_parts = [path for path in python_path.split(os.pathsep) if path]
-
-    if current_dir_text not in python_path_parts:
-        python_path_parts.insert(0, current_dir_text)
-        os.environ['PYTHONPATH'] = os.pathsep.join(python_path_parts)
-
-    os.environ['DJANGO_SETTINGS_MODULE'] = find_settings_module(current_dir)
+    if not question:
+        print('Вопрос пустой. Напишите вопрос и запустите ещё раз.')
+        return
 
     try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError("Could not import Django.") from exc
+        answer = ask_ollama(question)
+    except urllib.error.URLError as exc:
+        answer = (
+            "Не получилось подключиться к Ollama. "
+            "Проверьте, что Ollama запущена командой: ollama serve. "
+            f"Ошибка: {exc}"
+        )
+    except Exception as exc:
+        answer = f"Произошла ошибка при запросе к Ollama: {exc}"
 
-    if len(sys.argv) == 1:
-        execute_from_command_line([sys.argv[0], 'migrate', '--run-syncdb'])
+    if not answer:
+        answer = 'Ollama вернула пустой ответ.'
 
-        port = os.environ.get('PORT', '8000')
-        args = [sys.argv[0], 'runserver', f'0.0.0.0:{port}']
-    else:
-        args = sys.argv
+    answer_file_path = write_answer_to_file(question, answer)
 
-    execute_from_command_line(args)
+    print('Ответ записан в файл:')
+    print(answer_file_path)
 
 
 if __name__ == '__main__':
